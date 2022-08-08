@@ -5,7 +5,7 @@ from models import db, connect_db, Cupcake
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///playlist_app'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///cupcakes'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 
@@ -38,7 +38,7 @@ def create_cupcake():
     flavor = request.json["flavor"]
     size = request.json["size"]
     rating = request.json["rating"]
-    image = request.json["image"]
+    image = request.json["image"] or None
 
     new_cupcake = Cupcake(flavor = flavor,
                             size = size,
@@ -57,8 +57,8 @@ def update_cupcake(cupcake_id):
     """Return JSON {cupcake: {id, flavor, size, rating, image}}"""
 
     cupcake = Cupcake.query.get_or_404(cupcake_id)
-
-    cupcake.flavor = request.json["flavor"]
+    #TODO: change to .get
+    cupcake.flavor = request.json.get("flavor", cupcake.flavor)
     cupcake.size = request.json["size"]
     cupcake.rating = request.json["rating"]
     cupcake.image = request.json["image"]
@@ -79,3 +79,9 @@ def delete_cupcake(cupcake_id):
     db.session.commit()
 
     return jsonify(deleted = f'{cupcake.id}')
+
+@app.get("/")
+def show_homepage():
+    """Return html page"""
+
+    return render_template("index.html", cupcakes = Cupcake.query.all())
